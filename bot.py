@@ -6,6 +6,12 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Callb
 # Secure token from Render Environment Variable
 TOKEN = os.getenv("BOT_TOKEN")
 
+# Admin list
+ADMINS = [123456789, 7432801922]  # 7432801922 = Vishnu Nishad (@Vishnun_0476)  # 7432801922 = Vishnu Nishad (@Vishnun_0476)  # Replace with your Telegram user ID
+
+# In-memory order tracking
+orders_log = []
+
 # Generate a unique order ID
 def generate_order_id():
     return f"LYC{datetime.now().strftime('%y%m%d%H%M%S')}"
@@ -22,6 +28,22 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Welcome to LycanSmm! Select a service:", reply_markup=reply_markup)
 
+# Admin Panel Command
+@restricted_to_admins
+async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    if user_id not in ADMINS:
+        await update.message.reply_text("🚫 You are not authorized to access the admin panel.")
+        return
+
+    keyboard = [
+        [InlineKeyboardButton("📥 View Recent Orders", callback_data='admin_view_orders')],
+        [InlineKeyboardButton("✅ Confirm Order", switch_inline_query_current_chat="Confirm Order: LYC")],
+        [InlineKeyboardButton("❌ Reject Order", switch_inline_query_current_chat="Reject Order: LYC")],
+        [InlineKeyboardButton("💰 Check Payments", callback_data='admin_check_payments')],
+    ]
+    await update.message.reply_text("🛠️ *Admin Control Panel*", reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
+
 # Button Handler with Debug Logs
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("👉 CallbackQueryHandler triggered")
@@ -29,8 +51,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     order_id = generate_order_id()
+    user_id = query.from_user.id
+    username = query.from_user.username or query.from_user.first_name
 
     if query.data == 'instagram':
+        orders_log.append((order_id, user_id, 'Instagram'))
         keyboard = [
             [InlineKeyboardButton("❤️ Likes - ₹10 per 1K", callback_data='insta_likes')],
             [InlineKeyboardButton("👥 Followers - ₹100 per 1K", callback_data='insta_followers')],
@@ -50,6 +75,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     elif query.data == 'youtube':
+        orders_log.append((order_id, user_id, 'YouTube'))
         keyboard = [
             [InlineKeyboardButton("👥 Subscribers - ₹150 per 1K", callback_data='yt_subs')],
             [InlineKeyboardButton("👁️ Views - ₹80 per 1K", callback_data='yt_views')],
@@ -64,6 +90,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     elif query.data == 'telegram':
+        orders_log.append((order_id, user_id, 'Telegram'))
         keyboard = [
             [InlineKeyboardButton("👥 Telegram Members - ₹150 per 1K", callback_data='tg_members')],
         ]
@@ -109,8 +136,30 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="Markdown"
         )
 
+    elif query.data == 'admin_view_orders':
+        if orders_log:
+            orders_text = "\n".join([f"{oid} - {typ} - @{uid}" for oid, uid, typ in orders_log[-5:]])
+            await query.message.reply_text(f"🧾 Last 5 Orders:\n{orders_text}")
+        else:
+            await query.message.reply_text("🧾 No orders placed yet.")
+
+    elif query.data == 'admin_check_payments':
+        await query.message.reply_text("💰 Payment Screenshot Summary:\n- Received from multiple users. Please verify manually in gallery/chat history.")
+
     else:
         await query.message.reply_text(f"You selected: {query.data}. Please send the link related to this service after completing the payment.")
+
+# Admin-only access decorator
+from functools import wraps
+
+def restricted_to_admins(func):
+    @wraps(func)
+    async def wrapped(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
+        user_id = update.effective_user.id
+        if user_id not in ADMINS:
+            return await update.message.reply_text("🚫 This command is only for admins.")
+        return await func(update, context, *args, **kwargs)
+    return wrapped
 
 # Message Handler
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -133,6 +182,7 @@ if __name__ == '__main__':
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("admin", admin_panel))
     app.add_handler(CallbackQueryHandler(button, pattern=".*"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(MessageHandler(filters.PHOTO, handle_message))
