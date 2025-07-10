@@ -82,10 +82,13 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "💸 *How to Pay:*\n\n"
                 "Scan the QR code above or use any UPI app (PhonePe, GPay, Paytm) and send payment to:\n"
                 "`afnansidd110-1@okicici`\n"
-                "Amount: As per your service selection\n"
-                "After payment, send the screenshot and your post link here.\n\n"
+                "Amount: As per your service selection\n\n"
+                "🖼️ After payment, click the button below to submit screenshot.\n"
                 "✅ Our team will verify and process your request."
             ),
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("📤 Submit Payment Screenshot", switch_inline_query_current_chat="Payment Screenshot: ")]
+            ]),
             parse_mode="Markdown"
         )
 
@@ -116,6 +119,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"🔎 Tracking Order ID: {user_message}\n\n⏳ Status: In queue / Processing.\n✅ You'll receive confirmation as soon as it's live."
         )
+    elif user_message.lower().startswith("payment screenshot") or update.message.photo:
+        await update.message.reply_text(
+            "📩 Payment screenshot received. Our team will verify and confirm your order shortly. Thank you!"
+        )
     else:
         await update.message.reply_text(
             f"✅ Received your link: {user_message}\n\n🛠️ Our team will process your request soon."
@@ -128,6 +135,7 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button, pattern=".*"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(MessageHandler(filters.PHOTO, handle_message))
 
     print("Bot is running...")
     app.run_polling()
