@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from functools import wraps
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 
@@ -7,10 +8,20 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Callb
 TOKEN = os.getenv("BOT_TOKEN")
 
 # Admin list
-ADMINS = [123456789, 7432801922]  # 7432801922 = Vishnu Nishad (@Vishnun_0476)  # 7432801922 = Vishnu Nishad (@Vishnun_0476)  # Replace with your Telegram user ID
+ADMINS = [123456789, 7432801922]  # Replace with your Telegram user IDs
 
 # In-memory order tracking
 orders_log = []
+
+# Admin-only access decorator
+def restricted_to_admins(func):
+    @wraps(func)
+    async def wrapped(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
+        user_id = update.effective_user.id
+        if user_id not in ADMINS:
+            return await update.message.reply_text("🚫 This command is only for admins.")
+        return await func(update, context, *args, **kwargs)
+    return wrapped
 
 # Generate a unique order ID
 def generate_order_id():
@@ -31,11 +42,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Admin Panel Command
 @restricted_to_admins
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    if user_id not in ADMINS:
-        await update.message.reply_text("🚫 You are not authorized to access the admin panel.")
-        return
-
     keyboard = [
         [InlineKeyboardButton("📥 View Recent Orders", callback_data='admin_view_orders')],
         [InlineKeyboardButton("✅ Confirm Order", switch_inline_query_current_chat="Confirm Order: LYC")],
@@ -44,9 +50,8 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     await update.message.reply_text("🛠️ *Admin Control Panel*", reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
 
-# Button Handler with Debug Logs
+# Button Handler
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("👉 CallbackQueryHandler triggered")
     query = update.callback_query
     await query.answer()
 
@@ -66,11 +71,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("🔄 Shares - ₹10 per 1K", callback_data='insta_shares')],
             [InlineKeyboardButton("💾 Saves - ₹10 per 1K", callback_data='insta_saves')],
         ]
-        payment_keyboard = [
-            [InlineKeyboardButton("💳 Payment Instructions", callback_data='payment_info')]
-        ]
+        payment_keyboard = [[InlineKeyboardButton("💳 Payment Instructions", callback_data='payment_info')]]
         await query.message.reply_text(
-            f"Choose Instagram Service with Rates:\n\n🆔 Order ID: #{order_id}\nProcessing starts instantly.\nTotal delivery time: 5–10 minutes.\n\n💼 Once our team is online, your request will be accepted and delivered shortly. Thank you for your business mindset and trust!",
+            f"Choose Instagram Service with Rates:\n\n🆔 Order ID: #{order_id}\nProcessing starts instantly.\nTotal delivery time: 5–10 minutes.\n\n💼 Once our team is online, your request will be accepted and delivered shortly.",
             reply_markup=InlineKeyboardMarkup(keyboard + payment_keyboard)
         )
 
@@ -81,24 +84,18 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("👁️ Views - ₹80 per 1K", callback_data='yt_views')],
             [InlineKeyboardButton("💰 4k watchtime - ₹1500", callback_data='yt_monetize')],
         ]
-        payment_keyboard = [
-            [InlineKeyboardButton("💳 Payment Instructions", callback_data='payment_info')]
-        ]
+        payment_keyboard = [[InlineKeyboardButton("💳 Payment Instructions", callback_data='payment_info')]]
         await query.message.reply_text(
-            f"Choose YouTube Service with Rates:\n\n🆔 Order ID: #{order_id}\nProcessing starts instantly.\nTotal delivery time: 30–60 minutes.\n\n💼 Once our team is online, your request will be accepted and executed as per queue. Stay assured!",
+            f"Choose YouTube Service with Rates:\n\n🆔 Order ID: #{order_id}\nProcessing starts instantly.\nTotal delivery time: 30–60 minutes.\n\n💼 Once our team is online, your request will be accepted and executed as per queue.",
             reply_markup=InlineKeyboardMarkup(keyboard + payment_keyboard)
         )
 
     elif query.data == 'telegram':
         orders_log.append((order_id, user_id, 'Telegram'))
-        keyboard = [
-            [InlineKeyboardButton("👥 Telegram Members - ₹150 per 1K", callback_data='tg_members')],
-        ]
-        payment_keyboard = [
-            [InlineKeyboardButton("💳 Payment Instructions", callback_data='payment_info')]
-        ]
+        keyboard = [[InlineKeyboardButton("👥 Telegram Members - ₹150 per 1K", callback_data='tg_members')]]
+        payment_keyboard = [[InlineKeyboardButton("💳 Payment Instructions", callback_data='payment_info')]]
         await query.message.reply_text(
-            f"Choose Telegram Service with Rates:\n\n🆔 Order ID: #{order_id}\nProcessing starts instantly.\nTotal delivery time: 5–10 minutes.\n\n💼 Once our team is online, your request will be accepted and pushed for delivery soon. Appreciate your patience!",
+            f"Choose Telegram Service with Rates:\n\n🆔 Order ID: #{order_id}\nProcessing starts instantly.\nTotal delivery time: 5–10 minutes.\n\n💼 Once our team is online, your request will be accepted and pushed for delivery.",
             reply_markup=InlineKeyboardMarkup(keyboard + payment_keyboard)
         )
 
@@ -107,11 +104,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             photo=open("paytm_qr.png", "rb"),
             caption=(
                 "💸 *How to Pay:*\n\n"
-                "Scan the QR code above or use any UPI app (PhonePe, GPay, Paytm) and send payment to:\n"
+                "Scan the QR code above or use any UPI app (PhonePe, GPay, Paytm):\n"
                 "`afnansidd110-1@okicici`\n"
-                "Amount: As per your service selection\n\n"
-                "🖼️ After payment, click the button below to submit screenshot.\n"
-                "✅ Our team will verify and process your request."
+                "Amount: As per your selected service.\n\n"
+                "📤 After payment, reply with screenshot or click below."
             ),
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("📤 Submit Payment Screenshot", switch_inline_query_current_chat="Payment Screenshot: ")]
@@ -121,18 +117,17 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == 'faq':
         await query.message.reply_text(
-            "📖 *Frequently Asked Questions:*\n"
-            "1. *How long does delivery take?*\nUsually within 5–60 minutes depending on the service.\n"
-            "2. *Are these services safe?*\nYes, we deliver via non-drop & organic promotion techniques.\n"
-            "3. *Will followers/views drop?*\nWe ensure stable growth but a <5% drop can naturally occur.\n"
-            "4. *Is there support?*\nAbsolutely! We're here 10AM–11PM daily to assist you.",
+            "📖 *FAQs:*\n"
+            "1. Delivery Time? → Usually 5–60 mins\n"
+            "2. Is it Safe? → Yes, via organic/non-drop\n"
+            "3. Will it drop? → <5% drop possible\n"
+            "4. Support Time? → 10AM to 11PM IST",
             parse_mode="Markdown"
         )
 
     elif query.data == 'track':
         await query.message.reply_text(
-            "📦 *Track My Order:*\n"
-            "Please reply with your Order ID (e.g., `LYC240710153045`) so we can update you on your status.",
+            "📦 *Track Order:*\nReply with your Order ID (e.g. `LYC240710153045`) to get the latest status.",
             parse_mode="Markdown"
         )
 
@@ -141,51 +136,35 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             orders_text = "\n".join([f"{oid} - {typ} - @{uid}" for oid, uid, typ in orders_log[-5:]])
             await query.message.reply_text(f"🧾 Last 5 Orders:\n{orders_text}")
         else:
-            await query.message.reply_text("🧾 No orders placed yet.")
+            await query.message.reply_text("🧾 No orders yet.")
 
     elif query.data == 'admin_check_payments':
-        await query.message.reply_text("💰 Payment Screenshot Summary:\n- Received from multiple users. Please verify manually in gallery/chat history.")
+        await query.message.reply_text("💰 Payment Screenshot Summary:\nPlease verify manually in chat/gallery.")
 
     else:
-        await query.message.reply_text(f"You selected: {query.data}. Please send the link related to this service after completing the payment.")
-
-# Admin-only access decorator
-from functools import wraps
-
-def restricted_to_admins(func):
-    @wraps(func)
-    async def wrapped(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
-        user_id = update.effective_user.id
-        if user_id not in ADMINS:
-            return await update.message.reply_text("🚫 This command is only for admins.")
-        return await func(update, context, *args, **kwargs)
-    return wrapped
+        await query.message.reply_text(f"You selected: {query.data}. Please send your link after payment.")
 
 # Message Handler
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     if user_message.upper().startswith("LYC"):
         await update.message.reply_text(
-            f"🔎 Tracking Order ID: {user_message}\n\n⏳ Status: In queue / Processing.\n✅ You'll receive confirmation as soon as it's live."
+            f"🔎 Tracking Order ID: {user_message}\nStatus: In queue / Processing.\nYou'll get a confirmation shortly."
         )
     elif user_message.lower().startswith("payment screenshot") or update.message.photo:
-        await update.message.reply_text(
-            "📩 Payment screenshot received. Our team will verify and confirm your order shortly. Thank you!"
-        )
+        await update.message.reply_text("📩 Screenshot received. Our team will verify and confirm soon.")
     else:
         await update.message.reply_text(
-            f"✅ Received your link: {user_message}\n\n🛠️ Our team will process your request soon."
+            f"✅ Link received: {user_message}\nOur team will process shortly."
         )
 
 # Main
 if __name__ == '__main__':
     app = ApplicationBuilder().token(TOKEN).build()
-
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("admin", admin_panel))
     app.add_handler(CallbackQueryHandler(button, pattern=".*"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(MessageHandler(filters.PHOTO, handle_message))
-
     print("Bot is running...")
     app.run_polling()
