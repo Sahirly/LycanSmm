@@ -62,11 +62,8 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == 'payment_info':
         await query.message.reply_text(
-            "\ud83d\udcb8 *How to Pay:*
-\n\nUse any UPI app (PhonePe, GPay, Paytm) and send payment to:
-\n`afnansidd110-1@okicici`
-\nAmount: As per your service selection
-\nAfter payment, send the screenshot and your post link here.\n\n\u2705 Our team will verify and process your request."
+            "\ud83d\udcb8 *How to Pay:*\n\nUse any UPI app (PhonePe, GPay, Paytm) and send payment to:\n`afnansidd110-1@okicici`\nAmount: As per your service selection\nAfter payment, send the screenshot and your post link here.\n\n\u2705 Our team will verify and process your request.",
+            parse_mode="Markdown"
         )
 
     else:
