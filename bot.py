@@ -1,8 +1,9 @@
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 
-# Replace this with your actual token
-TOKEN = "7576314135:AAGhm1sin896_uOq3M4_MO_okfwxcOB1muI"
+# Secure token access
+TOKEN = os.getenv("BOT_TOKEN")
 
 # Start Command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
