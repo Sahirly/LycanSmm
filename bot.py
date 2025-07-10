@@ -8,61 +8,61 @@ TOKEN = os.getenv("BOT_TOKEN")
 # Start Command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton("\ud83d\udcf8 Instagram Services", callback_data='instagram')],
-        [InlineKeyboardButton("\u25b6\ufe0f YouTube Services", callback_data='youtube')],
-        [InlineKeyboardButton("\ud83d\udcf2 Telegram Services", callback_data='telegram')],
+        [InlineKeyboardButton("📸 Instagram Services", callback_data='instagram')],
+        [InlineKeyboardButton("▶️ YouTube Services", callback_data='youtube')],
+        [InlineKeyboardButton("📲 Telegram Services", callback_data='telegram')],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Welcome to LycanSmm! Select a service:", reply_markup=reply_markup)
 
 # Button Handler with Debug Logs
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("\ud83d\udc49 CallbackQueryHandler triggered")  # Debug line
+    print("👉 CallbackQueryHandler triggered")  # Debug line
     query = update.callback_query
     await query.answer()
 
     if query.data == 'instagram':
         keyboard = [
-            [InlineKeyboardButton("\u2764\ufe0f Likes - \u20b910 per 1K", callback_data='insta_likes')],
-            [InlineKeyboardButton("\ud83d\udc65 Followers - \u20b9100 per 1K", callback_data='insta_followers')],
-            [InlineKeyboardButton("\ud83d\udc40 Views - \u20b930 per 100K", callback_data='insta_views')],
-            [InlineKeyboardButton("\ud83d\udcc8 Reach - \u20b970 per 1K", callback_data='insta_reach')],
-            [InlineKeyboardButton("\ud83d\udc41\ufe0f\u200d\u25b8\ufe0f Story Views - \u20b940 per 1K", callback_data='insta_story')],
-            [InlineKeyboardButton("\ud83d\udcac Comments - \u20b9120 per 1K", callback_data='insta_comments')],
-            [InlineKeyboardButton("\ud83d\udd04 Shares - \u20b910 per 1K", callback_data='insta_shares')],
-            [InlineKeyboardButton("\ud83d\udcbe Saves - \u20b910 per 1K", callback_data='insta_saves')],
+            [InlineKeyboardButton("❤️ Likes - ₹10 per 1K", callback_data='insta_likes')],
+            [InlineKeyboardButton("👥 Followers - ₹100 per 1K", callback_data='insta_followers')],
+            [InlineKeyboardButton("👀 Views - ₹30 per 100K", callback_data='insta_views')],
+            [InlineKeyboardButton("📈 Reach - ₹70 per 1K", callback_data='insta_reach')],
+            [InlineKeyboardButton("👁‍🗨 Story Views - ₹40 per 1K", callback_data='insta_story')],
+            [InlineKeyboardButton("💬 Comments - ₹120 per 1K", callback_data='insta_comments')],
+            [InlineKeyboardButton("🔄 Shares - ₹10 per 1K", callback_data='insta_shares')],
+            [InlineKeyboardButton("💾 Saves - ₹10 per 1K", callback_data='insta_saves')],
         ]
         payment_keyboard = [
-            [InlineKeyboardButton("\ud83d\udcb3 Payment Instructions", callback_data='payment_info')]
+            [InlineKeyboardButton("💳 Payment Instructions", callback_data='payment_info')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard + payment_keyboard)
         await query.message.reply_text("Choose Instagram Service with Rates:", reply_markup=reply_markup)
 
     elif query.data == 'youtube':
         keyboard = [
-            [InlineKeyboardButton("\ud83d\udc65 Subscribers - \u20b9150 per 1K", callback_data='yt_subs')],
-            [InlineKeyboardButton("\ud83d\udc41\ufe0f Views - \u20b980 per 1K", callback_data='yt_views')],
-            [InlineKeyboardButton("\ud83d\udcb0 4k watchtime - \u20b91500", callback_data='yt_monetize')],
+            [InlineKeyboardButton("👥 Subscribers - ₹150 per 1K", callback_data='yt_subs')],
+            [InlineKeyboardButton("👁️ Views - ₹80 per 1K", callback_data='yt_views')],
+            [InlineKeyboardButton("💰 4k watchtime - ₹1500", callback_data='yt_monetize')],
         ]
         payment_keyboard = [
-            [InlineKeyboardButton("\ud83d\udcb3 Payment Instructions", callback_data='payment_info')]
+            [InlineKeyboardButton("💳 Payment Instructions", callback_data='payment_info')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard + payment_keyboard)
         await query.message.reply_text("Choose YouTube Service with Rates:", reply_markup=reply_markup)
 
     elif query.data == 'telegram':
         keyboard = [
-            [InlineKeyboardButton("\ud83d\udc65 Telegram Members - \u20b9150 per 1K", callback_data='tg_members')],
+            [InlineKeyboardButton("👥 Telegram Members - ₹150 per 1K", callback_data='tg_members')],
         ]
         payment_keyboard = [
-            [InlineKeyboardButton("\ud83d\udcb3 Payment Instructions", callback_data='payment_info')]
+            [InlineKeyboardButton("💳 Payment Instructions", callback_data='payment_info')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard + payment_keyboard)
         await query.message.reply_text("Choose Telegram Service with Rates:", reply_markup=reply_markup)
 
     elif query.data == 'payment_info':
         await query.message.reply_text(
-            "\ud83d\udcb8 *How to Pay:*\n\nUse any UPI app (PhonePe, GPay, Paytm) and send payment to:\n`afnansidd110-1@okicici`\nAmount: As per your service selection\nAfter payment, send the screenshot and your post link here.\n\n\u2705 Our team will verify and process your request.",
+            "💸 *How to Pay:*\n\nUse any UPI app (PhonePe, GPay, Paytm) and send payment to:\n`afnansidd110-1@okicici`\nAmount: As per your service selection\nAfter payment, send the screenshot and your post link here.\n\n✅ Our team will verify and process your request.",
             parse_mode="Markdown"
         )
 
@@ -73,7 +73,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     await update.message.reply_text(
-        f"\u2705 Received your link: {user_message}\n\n\ud83d\udee0 Our team will process your request soon."
+        f"✅ Received your link: {user_message}\n\n🛠️ Our team will process your request soon."
     )
 
 # Main
@@ -84,5 +84,5 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(button, pattern=".*"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    print("\ud83e\udd16 Bot is running...")
+    print("Bot is running...")
     app.run_polling()
