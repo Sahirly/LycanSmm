@@ -33,7 +33,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("\ud83d\udcbe Saves - \u20b910 per 1K", callback_data='insta_saves')],
         ]
         payment_keyboard = [
-            [InlineKeyboardButton("\ud83d\udcb8 Pay Here", url="upi://pay?pa=afnansidd110-1@okicici&pn=LycanSMM&am=100&cu=INR")]
+            [InlineKeyboardButton("\ud83d\udcb3 Payment Instructions", callback_data='payment_info')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard + payment_keyboard)
         await query.message.reply_text("Choose Instagram Service with Rates:", reply_markup=reply_markup)
@@ -45,7 +45,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("\ud83d\udcb0 4k watchtime - \u20b91500", callback_data='yt_monetize')],
         ]
         payment_keyboard = [
-            [InlineKeyboardButton("\ud83d\udcb8 Pay Here", url="upi://pay?pa=afnansidd110-1@okicici&pn=LycanSMM&am=100&cu=INR")]
+            [InlineKeyboardButton("\ud83d\udcb3 Payment Instructions", callback_data='payment_info')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard + payment_keyboard)
         await query.message.reply_text("Choose YouTube Service with Rates:", reply_markup=reply_markup)
@@ -55,10 +55,19 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("\ud83d\udc65 Telegram Members - \u20b9150 per 1K", callback_data='tg_members')],
         ]
         payment_keyboard = [
-            [InlineKeyboardButton("\ud83d\udcb8 Pay Here", url="upi://pay?pa=afnansidd110-1@okicici&pn=LycanSMM&am=100&cu=INR")]
+            [InlineKeyboardButton("\ud83d\udcb3 Payment Instructions", callback_data='payment_info')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard + payment_keyboard)
         await query.message.reply_text("Choose Telegram Service with Rates:", reply_markup=reply_markup)
+
+    elif query.data == 'payment_info':
+        await query.message.reply_text(
+            "\ud83d\udcb8 *How to Pay:*
+\n\nUse any UPI app (PhonePe, GPay, Paytm) and send payment to:
+\n`afnansidd110-1@okicici`
+\nAmount: As per your service selection
+\nAfter payment, send the screenshot and your post link here.\n\n\u2705 Our team will verify and process your request."
+        )
 
     else:
         await query.message.reply_text(f"You selected: {query.data}. Please send the link related to this service after completing the payment.")
@@ -75,7 +84,7 @@ if __name__ == '__main__':
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(button))
+    app.add_handler(CallbackQueryHandler(button, pattern=".*"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     print("\ud83e\udd16 Bot is running...")
